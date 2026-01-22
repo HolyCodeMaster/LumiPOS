@@ -70,7 +70,7 @@ fun TopNavigationHeader(
                     )
                 }
 
-                // Dato, tid og admin
+                // Dato, tid og funktionelle ikoner
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
@@ -79,7 +79,7 @@ fun TopNavigationHeader(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(text = "📍", fontSize = 16.sp)
+                        LocationIcon(size = 16.dp, color = LumiPOSColors.TekstDæmpet)
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 text = "København, Danmark",
@@ -90,7 +90,7 @@ fun TopNavigationHeader(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(text = "🕐", fontSize = 11.sp)
+                                ClockIcon(size = 11.dp, color = LumiPOSColors.TekstDæmpet)
                                 Text(
                                     text = "Tirsdag · 12:45",
                                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
@@ -101,16 +101,46 @@ fun TopNavigationHeader(
                         }
                     }
 
-                    // Admin profil
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(LumiPOSColors.SurfaceVariant)
-                            .clickable { },
-                        contentAlignment = Alignment.Center
+                    // Funktionelle ikoner
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "👤", fontSize = 18.sp)
+                        // Notifikationer
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(LumiPOSColors.SurfaceVariant)
+                                .clickable { /* Åbn notifikationer */ },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            BellIcon(size = 18.dp, color = LumiPOSColors.TekstLys)
+                        }
+                        
+                        // Indstillinger
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(LumiPOSColors.SurfaceVariant)
+                                .clickable { /* Åbn indstillinger */ },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            SettingsIcon(size = 18.dp, color = LumiPOSColors.TekstLys)
+                        }
+                        
+                        // Admin profil
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(LumiPOSColors.SurfaceVariant)
+                                .clickable { /* Åbn profil */ },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            PersonIcon(size = 18.dp, color = LumiPOSColors.TekstLys)
+                        }
                     }
                 }
             }
@@ -124,15 +154,27 @@ fun TopNavigationHeader(
             ) {
                 NavigationTabItem(
                     tekst = "Oversigt",
-                    ikon = "📊",
+                    ikon = { ChartIcon(size = 18.dp, color = if (valgtTab == NavigationTab.OVERSIGT) LumiPOSColors.TekstLys else LumiPOSColors.TekstDæmpet) },
                     erValgt = valgtTab == NavigationTab.OVERSIGT,
                     onClick = { onTabSkift(NavigationTab.OVERSIGT) }
                 )
                 NavigationTabItem(
                     tekst = "Salg",
-                    ikon = "🛒",
+                    ikon = { CartIcon(size = 18.dp, color = if (valgtTab == NavigationTab.SALG) LumiPOSColors.TekstLys else LumiPOSColors.TekstDæmpet) },
                     erValgt = valgtTab == NavigationTab.SALG,
                     onClick = { onTabSkift(NavigationTab.SALG) }
+                )
+                NavigationTabItem(
+                    tekst = "Historik",
+                    ikon = { ListIcon(size = 18.dp, color = if (valgtTab == NavigationTab.HISTORIK) LumiPOSColors.TekstLys else LumiPOSColors.TekstDæmpet) },
+                    erValgt = valgtTab == NavigationTab.HISTORIK,
+                    onClick = { onTabSkift(NavigationTab.HISTORIK) }
+                )
+                NavigationTabItem(
+                    tekst = "Rapporter",
+                    ikon = { MoneyIcon(size = 18.dp, color = if (valgtTab == NavigationTab.RAPPORTER) LumiPOSColors.TekstLys else LumiPOSColors.TekstDæmpet) },
+                    erValgt = valgtTab == NavigationTab.RAPPORTER,
+                    onClick = { onTabSkift(NavigationTab.RAPPORTER) }
                 )
             }
         }
@@ -142,7 +184,7 @@ fun TopNavigationHeader(
 @Composable
 fun NavigationTabItem(
     tekst: String,
-    ikon: String,
+    ikon: @Composable () -> Unit,
     erValgt: Boolean,
     onClick: () -> Unit
 ) {
@@ -155,7 +197,7 @@ fun NavigationTabItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = ikon, fontSize = 18.sp)
+            ikon()
             Text(
                 text = tekst,
                 style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),

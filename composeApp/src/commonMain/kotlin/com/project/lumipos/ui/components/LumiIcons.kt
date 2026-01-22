@@ -444,3 +444,389 @@ fun AllItemsIcon(
         }
     }
 }
+
+@Composable
+fun BellIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // Klokke krop
+        drawArc(
+            color = color,
+            startAngle = 200f,
+            sweepAngle = 140f,
+            useCenter = false,
+            topLeft = Offset(iconSize * 0.2f, iconSize * 0.25f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.6f, iconSize * 0.5f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Klokke top
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.5f, iconSize * 0.15f),
+            end = Offset(iconSize * 0.5f, iconSize * 0.28f),
+            strokeWidth = 2f,
+            cap = StrokeCap.Round
+        )
+        
+        // Lille cirkel øverst
+        drawCircle(
+            color = color,
+            radius = iconSize * 0.06f,
+            center = Offset(iconSize * 0.5f, iconSize * 0.12f)
+        )
+        
+        // Bund linje
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.25f, iconSize * 0.7f),
+            end = Offset(iconSize * 0.75f, iconSize * 0.7f),
+            strokeWidth = 2f,
+            cap = StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+fun SettingsIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        val center = Offset(iconSize / 2, iconSize / 2)
+        val radius = iconSize * 0.25f
+        
+        // Center cirkel
+        drawCircle(
+            color = color,
+            radius = radius,
+            center = center,
+            style = Stroke(width = 2f)
+        )
+        
+        // 4 "tænder"
+        listOf(0f, 90f, 180f, 270f).forEach { angle ->
+            val radians = (angle * kotlin.math.PI / 180.0).toFloat()
+            val innerX = center.x + kotlin.math.cos(radians) * radius * 1.2f
+            val innerY = center.y + kotlin.math.sin(radians) * radius * 1.2f
+            val outerX = center.x + kotlin.math.cos(radians) * radius * 1.8f
+            val outerY = center.y + kotlin.math.sin(radians) * radius * 1.8f
+            
+            drawLine(
+                color = color,
+                start = Offset(innerX, innerY),
+                end = Offset(outerX, outerY),
+                strokeWidth = 2.5f,
+                cap = StrokeCap.Round
+            )
+        }
+    }
+}
+
+@Composable
+fun PersonIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // Hoved
+        drawCircle(
+            color = color,
+            radius = iconSize * 0.18f,
+            center = Offset(iconSize * 0.5f, iconSize * 0.3f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Krop (halvcirkel)
+        drawArc(
+            color = color,
+            startAngle = 0f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(iconSize * 0.2f, iconSize * 0.5f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.6f, iconSize * 0.45f),
+            style = Stroke(width = 2f)
+        )
+    }
+}
+
+@Composable
+fun ChartIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // 3 søjler med forskellige højder
+        listOf(
+            Triple(0.15f, 0.5f, 0.2f),  // x, height, width
+            Triple(0.4f, 0.7f, 0.2f),
+            Triple(0.65f, 0.35f, 0.2f)
+        ).forEach { (x, height, width) ->
+            drawRect(
+                color = color,
+                topLeft = Offset(iconSize * x, iconSize * (0.85f - height)),
+                size = androidx.compose.ui.geometry.Size(iconSize * width, iconSize * height),
+                style = Stroke(width = 2f)
+            )
+        }
+        
+        // Bund linje
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.1f, iconSize * 0.87f),
+            end = Offset(iconSize * 0.9f, iconSize * 0.87f),
+            strokeWidth = 2f
+        )
+    }
+}
+
+@Composable
+fun LockIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // Låsekrop
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(iconSize * 0.25f, iconSize * 0.45f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.5f, iconSize * 0.45f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(iconSize * 0.05f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Bøjle
+        drawArc(
+            color = color,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(iconSize * 0.35f, iconSize * 0.15f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.3f, iconSize * 0.35f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Nøglehul
+        drawCircle(
+            color = color,
+            radius = iconSize * 0.06f,
+            center = Offset(iconSize * 0.5f, iconSize * 0.6f)
+        )
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.5f, iconSize * 0.66f),
+            end = Offset(iconSize * 0.5f, iconSize * 0.78f),
+            strokeWidth = 2f
+        )
+    }
+}
+
+@Composable
+fun LocationIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // Pin form
+        drawCircle(
+            color = color,
+            radius = iconSize * 0.2f,
+            center = Offset(iconSize * 0.5f, iconSize * 0.3f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Pin spids
+        drawPath(
+            path = Path().apply {
+                moveTo(iconSize * 0.5f, iconSize * 0.5f)
+                lineTo(iconSize * 0.42f, iconSize * 0.75f)
+                lineTo(iconSize * 0.5f, iconSize * 0.85f)
+                lineTo(iconSize * 0.58f, iconSize * 0.75f)
+                close()
+            },
+            color = color,
+            style = Stroke(width = 2f)
+        )
+    }
+}
+
+@Composable
+fun CalendarIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // Kalender ramme
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(iconSize * 0.15f, iconSize * 0.2f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.7f, iconSize * 0.65f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(iconSize * 0.05f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Top bånd
+        drawRect(
+            color = color,
+            topLeft = Offset(iconSize * 0.15f, iconSize * 0.2f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.7f, iconSize * 0.15f)
+        )
+        
+        // Rings
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.3f, iconSize * 0.13f),
+            end = Offset(iconSize * 0.3f, iconSize * 0.27f),
+            strokeWidth = 2f,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.7f, iconSize * 0.13f),
+            end = Offset(iconSize * 0.7f, iconSize * 0.27f),
+            strokeWidth = 2f,
+            cap = StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+fun EditIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // Blyant
+        drawPath(
+            path = Path().apply {
+                moveTo(iconSize * 0.7f, iconSize * 0.15f)
+                lineTo(iconSize * 0.85f, iconSize * 0.3f)
+                lineTo(iconSize * 0.35f, iconSize * 0.8f)
+                lineTo(iconSize * 0.15f, iconSize * 0.85f)
+                lineTo(iconSize * 0.2f, iconSize * 0.65f)
+                close()
+            },
+            color = color,
+            style = Stroke(width = 2f)
+        )
+        
+        // Blyant spids
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.35f, iconSize * 0.8f),
+            end = Offset(iconSize * 0.7f, iconSize * 0.45f),
+            strokeWidth = 1.5f
+        )
+    }
+}
+
+@Composable
+fun DeleteIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        
+        // Skraldespand
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(iconSize * 0.25f, iconSize * 0.35f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.5f, iconSize * 0.55f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(iconSize * 0.05f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Top låg
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.15f, iconSize * 0.3f),
+            end = Offset(iconSize * 0.85f, iconSize * 0.3f),
+            strokeWidth = 2f,
+            cap = StrokeCap.Round
+        )
+        
+        // Håndtag
+        drawArc(
+            color = color,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(iconSize * 0.35f, iconSize * 0.15f),
+            size = androidx.compose.ui.geometry.Size(iconSize * 0.3f, iconSize * 0.2f),
+            style = Stroke(width = 2f)
+        )
+        
+        // Lodret streger
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.4f, iconSize * 0.45f),
+            end = Offset(iconSize * 0.4f, iconSize * 0.75f),
+            strokeWidth = 1.5f,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.6f, iconSize * 0.45f),
+            end = Offset(iconSize * 0.6f, iconSize * 0.75f),
+            strokeWidth = 1.5f,
+            cap = StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+fun CloseIcon(
+    size: Dp = 20.dp,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val iconSize = size.toPx()
+        val strokeWidth = 2.5f
+        
+        // X - første linje (top-venstre til bund-højre)
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.25f, iconSize * 0.25f),
+            end = Offset(iconSize * 0.75f, iconSize * 0.75f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
+        )
+        
+        // X - anden linje (top-højre til bund-venstre)
+        drawLine(
+            color = color,
+            start = Offset(iconSize * 0.75f, iconSize * 0.25f),
+            end = Offset(iconSize * 0.25f, iconSize * 0.75f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
+        )
+    }
+}

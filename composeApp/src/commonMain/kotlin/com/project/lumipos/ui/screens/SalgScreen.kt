@@ -12,12 +12,23 @@ import com.project.lumipos.model.KurvItem
 import com.project.lumipos.ui.components.KategoriChip
 import com.project.lumipos.ui.components.ProduktKort
 import com.project.lumipos.ui.components.KurvPanel
+import com.project.lumipos.viewmodel.LumiViewModel
+import com.project.lumipos.ui.components.BordVælgerDialog
 
 @Composable
 fun SalgScreen(
     kurv: List<KurvItem>,
-    onKurvOpdater: (List<KurvItem>) -> Unit
+    onKurvOpdater: (List<KurvItem>) -> Unit,
+    viewModel: LumiViewModel
 ) {
+    // Dialog state
+    var visBordVælger by remember { mutableStateOf(false) }
+    var visBetalingBekræftelse by remember { mutableStateOf(false) }
+    var senestOrdreId by remember { mutableStateOf<String?>(null) }
+    
+    // Collect borde from ViewModel
+    val borde by viewModel.borde.collectAsState()
+
     val produkter = remember {
         listOf(
             Produkt(1, "Espresso", 35, "Kaffe", "coffee"),
@@ -106,7 +117,63 @@ fun SalgScreen(
         // Højre side: Kurv
         KurvPanel(
             kurv = kurv,
-            onKurvOpdater = onKurvOpdater
+            onKurvOpdater = onKurvOpdater,
+            onBetal = {
+                if (kurv.isNotEmpty()) {
+                    visBordVælger = true
+                }
+            }
         )
+    }
+    
+    // Bord-vælger dialog
+    if (visBordVælger) {
+        BordVælgerDialog(
+            borde = borde,
+            onDismiss = { visBordVælger = false },
+            onBordValgt = { bordNr ->
+                // Opret ordre
+                val result = viewModel.placeOrder(
+                    items = kurv,
+                    bordNr = bordNr,
+                    bemærkninger = ""
+                )
+                
+                result.onSuccess { ordre ->
+                    senestOrdreId = ordre.id
+                    visBetalingBekræftelse = true
+                    onKurvOpdater(emptyList()) // Ryd kurv
+                }
+                
+                visBordVælger = false
+            },
+            onTakeaway = {
+                // Opret takeaway ordre
+                val result = viewModel.placeOrder(
+                    items = kurv,
+                    bordNr = null, // null = Takeaway
+                    bemærkninger = ""
+                )
+                
+                result.onSuccess { ordre ->
+                    senestOrdreId = ordre.id
+                    visBetalingBekræftelse = true
+                    onKurvOpdater(emptyList())
+                }
+                
+                visBordVælger = false
+            }
+        )
+    }
+    
+    // Bekræftelse dialog
+    if (visBetalingBekræftelse && senestOrdreId != null) {
+        LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(2000)
+            visBetalingBekræftelse = false
+            senestOrdreId = null
+        }
+        
+        // TODO: Vis pæn bekræftelse dialog
     }
 }

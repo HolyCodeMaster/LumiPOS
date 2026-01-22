@@ -115,7 +115,8 @@ fun ProduktKort(
 @Composable
 fun RowScope.KurvPanel(
     kurv: List<KurvItem>,
-    onKurvOpdater: (List<KurvItem>) -> Unit
+    onKurvOpdater: (List<KurvItem>) -> Unit,
+    onBetal: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -257,12 +258,16 @@ fun RowScope.KurvPanel(
 
                 // Betal knap
                 Button(
-                    onClick = { onKurvOpdater(emptyList()) },
+                    onClick = onBetal,
+                    enabled = kurv.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LumiPOSColors.AccentBlå)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LumiPOSColors.AccentBlå,
+                        disabledContainerColor = LumiPOSColors.SurfaceVariant
+                    )
                 ) {
                     Text(
                         text = "Betal",

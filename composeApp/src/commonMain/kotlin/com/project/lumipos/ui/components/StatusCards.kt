@@ -1,11 +1,14 @@
 package com.project.lumipos.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,19 +20,36 @@ import com.project.lumipos.model.OrdreStatus
 import com.project.lumipos.ui.theme.LumiPOSColors
 
 @Composable
-fun StatusKortRække() {
+fun StatusKortRække(
+    ordrerVenter: List<com.project.lumipos.model.Ordre>,
+    ordrerIGang: List<com.project.lumipos.model.Ordre>,
+    ordrerBetalt: Int,
+    onKortKlik: (String) -> Unit = {}
+) {
+    val totalVenter = ordrerVenter.sumOf { it.total }
+    val totalIGang = ordrerIGang.sumOf { it.total }
+    
     val kort = listOf(
-        OrdreStatus("Venter på betaling", 8, "DKK 3.420", LumiPOSColors.AccentBlå, "clock", 0.65f),
-        OrdreStatus("I gang", 5, "DKK 1.980", LumiPOSColors.Orange, "progress", 0.45f),
-        OrdreStatus("Afsluttede ordrer", 24, "DKK 12.750", LumiPOSColors.Grøn, "check", 0.85f)
+        OrdreStatus("Venter på betaling", ordrerVenter.size, "DKK $totalVenter", LumiPOSColors.AccentBlå, "clock", 0.65f),
+        OrdreStatus("I gang", ordrerIGang.size, "DKK $totalIGang", LumiPOSColors.Orange, "progress", 0.45f),
+        OrdreStatus("Afsluttede ordrer", ordrerBetalt, "DKK 0", LumiPOSColors.Grøn, "check", 0.85f)
     )
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        kort.forEach { status ->
-            StatusKort(status = status, modifier = Modifier.weight(1f))
+        kort.forEachIndexed { index, status ->
+            val statusType = when(index) {
+                0 -> "VENTER"
+                1 -> "I_GANG"
+                else -> "BETALT"
+            }
+            StatusKort(
+                status = status, 
+                modifier = Modifier.weight(1f),
+                onClick = { onKortKlik(statusType) }
+            )
         }
     }
 }
@@ -37,13 +57,15 @@ fun StatusKortRække() {
 @Composable
 fun RowScope.StatusKort(
     status: OrdreStatus,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier.height(140.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = LumiPOSColors.Panel),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier
@@ -125,11 +147,17 @@ fun ProgressBar(
 }
 
 @Composable
-fun RowScope.VentendeOgIGangPanel() {
+fun RowScope.VentendeOgIGangPanel(
+    ordrerVenter: List<com.project.lumipos.model.Ordre>,
+    ordrerIGang: List<com.project.lumipos.model.Ordre>,
+    onOrderClick: (String) -> Unit,
+    onHeaderClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .weight(1.5f)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .heightIn(min = 500.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = LumiPOSColors.Panel),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -137,10 +165,12 @@ fun RowScope.VentendeOgIGangPanel() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(16.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onHeaderClick),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -164,45 +194,159 @@ fun RowScope.VentendeOgIGangPanel() {
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-                Text(
-                    text = "Seneste 30 min",
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                    color = LumiPOSColors.TekstDæmpet
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "${ordrerVenter.size + ordrerIGang.size} aktive",
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                        color = LumiPOSColors.TekstDæmpet
+                    )
+                    Text(
+                        text = "→",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = LumiPOSColors.AccentBlå
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 400.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                KolonneListe(
+                OrdreKolonneListe(
                     titel = "Venter på betaling",
                     ikonType = "clock",
-                    elementer = listOf(
-                        "Bord 4 · DKK 320",
-                        "Takeaway #2031 · DKK 145",
-                        "Bord 7 · DKK 610",
-                        "Bord 12 · DKK 485",
-                        "Takeaway #2032 · DKK 215"
-                    ),
-                    accentFarve = LumiPOSColors.AccentBlå
+                    ordrer = ordrerVenter.take(5),
+                    accentFarve = LumiPOSColors.AccentBlå,
+                    onOrderClick = onOrderClick,
+                    showMore = ordrerVenter.size > 5,
+                    onShowMore = onHeaderClick
                 )
 
-                KolonneListe(
+                OrdreKolonneListe(
                     titel = "I gang",
                     ikonType = "progress",
-                    elementer = listOf(
-                        "Bord 1 · Hovedret",
-                        "Bord 5 · Forret",
-                        "Bord 9 · Drikkevarer",
-                        "Bord 3 · Dessert",
-                        "Takeaway #2030 · Pakkes"
-                    ),
-                    accentFarve = LumiPOSColors.Orange
+                    ordrer = ordrerIGang.take(5),
+                    accentFarve = LumiPOSColors.Orange,
+                    onOrderClick = onOrderClick,
+                    showMore = ordrerIGang.size > 5,
+                    onShowMore = onHeaderClick
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun RowScope.OrdreKolonneListe(
+    titel: String,
+    ikonType: String,
+    ordrer: List<com.project.lumipos.model.Ordre>,
+    accentFarve: Color,
+    onOrderClick: (String) -> Unit,
+    showMore: Boolean = false,
+    onShowMore: () -> Unit = {}
+) {
+    Column(modifier = Modifier.weight(1f)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                when (ikonType) {
+                    "clock" -> ClockIcon(size = 14.dp, color = accentFarve)
+                    "progress" -> ProgressCircleIcon(size = 14.dp, color = accentFarve)
+                    "check" -> CheckIcon(size = 14.dp, color = accentFarve)
+                    else -> Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(accentFarve))
+                }
+                Text(
+                    text = titel,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+                    color = LumiPOSColors.TekstDæmpet,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            if (showMore) {
+                Text(
+                    text = "Se alle",
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                    color = accentFarve,
+                    modifier = Modifier.clickable(onClick = onShowMore)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Scrollable list of clickable orders  
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 350.dp, max = 400.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (ordrer.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Ingen ordrer",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LumiPOSColors.TekstDæmpet
+                    )
+                }
+            } else {
+                ordrer.forEach { ordre ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = LumiPOSColors.SurfaceVariant),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    onClick = { onOrderClick(ordre.id) }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(accentFarve)
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = ordre.bordEllerTakeaway,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+                                color = LumiPOSColors.TekstLys,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "${ordre.id} · DKK ${ordre.total.toInt()}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                color = LumiPOSColors.TekstDæmpet
+                            )
+                        }
+                    }
+                }
+            }
+            } // Lukker else block
         }
     }
 }
@@ -234,34 +378,41 @@ fun RowScope.KolonneListe(
         }
         Spacer(modifier = Modifier.height(12.dp))
 
-        elementer.forEach { linje ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = LumiPOSColors.SurfaceVariant),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Scrollable list of orders
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 600.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            elementer.forEach { linje ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = LumiPOSColors.SurfaceVariant),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(accentFarve)
-                    )
-                    Text(
-                        text = linje,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
-                        color = LumiPOSColors.TekstLys,
-                        modifier = Modifier.weight(1f)
-                    )
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(accentFarve)
+                        )
+                        Text(
+                            text = linje,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+                            color = LumiPOSColors.TekstLys,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
@@ -269,7 +420,20 @@ fun RowScope.KolonneListe(
 }
 
 @Composable
-fun RowScope.HøjreInfoPanel() {
+fun RowScope.HøjreInfoPanel(
+    borde: List<com.project.lumipos.model.Bord>,
+    onBordClick: (Int) -> Unit = {}
+) {
+    val ledigeBorde = borde.filter { it.erLedig }
+    var visLagerDialog by remember { mutableStateOf(false) }
+    var lagerVarer by remember { 
+        mutableStateOf(listOf(
+            LagerVare("1", "Espresso bønner", LagerStatus.UDSOLGT, "coffee"),
+            LagerVare("2", "Havremælk", LagerStatus.LAVT_LAGER, "drink"),
+            LagerVare("3", "Croissant dej", LagerStatus.UDSOLGT, "bread")
+        ))
+    }
+    
     Column(
         modifier = Modifier.weight(1f),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -287,46 +451,69 @@ fun RowScope.HøjreInfoPanel() {
                     .padding(18.dp)
             ) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(LumiPOSColors.Rød.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        BoxIcon(size = 18.dp, color = LumiPOSColors.Rød)
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(LumiPOSColors.Rød.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            BoxIcon(size = 18.dp, color = LumiPOSColors.Rød)
+                        }
+                        Column {
+                            Text(
+                                text = "Lagerstatus",
+                                style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp),
+                                color = LumiPOSColors.TekstLys,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "${lagerVarer.size} varer",
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                color = LumiPOSColors.TekstDæmpet
+                            )
+                        }
                     }
-                    Column {
-                        Text(
-                            text = "Lagerstatus",
-                            style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp),
-                            color = LumiPOSColors.TekstLys,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "3 varer",
-                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                            color = LumiPOSColors.TekstDæmpet
-                        )
+                    
+                    // Administrer knap
+                    IconButton(
+                        onClick = { visLagerDialog = true },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Text("⚙️", fontSize = 18.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                listOf(
-                    Triple("Espresso bønner", "Udsolgt", "coffee"),
-                    Triple("Havremælk", "Lavt lager", "drink"),
-                    Triple("Croissant dej", "Udsolgt", "bread")
-                ).forEach { (navn, status, iconType) ->
-                    LagerItem(navn = navn, status = status, iconType = iconType)
+                // Scrollable lagerstatus list
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 150.dp, max = 400.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    lagerVarer.forEach { vare ->
+                        LagerItem(
+                            navn = vare.navn, 
+                            status = vare.status.displayNavn, 
+                            iconType = vare.iconType
+                        )
+                    }
                 }
             }
         }
 
-        // Borde card
+        // Borde card - LIVE DATA
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -359,7 +546,7 @@ fun RowScope.HøjreInfoPanel() {
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "8 ledige",
+                            text = "${ledigeBorde.size} ledige",
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                             color = LumiPOSColors.TekstDæmpet
                         )
@@ -368,20 +555,42 @@ fun RowScope.HøjreInfoPanel() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(
-                        "Bord 2" to "Ledigt",
-                        "Bord 3" to "Ledigt",
-                        "Bord 6" to "Reserveret",
-                        "Bord 8" to "Ledigt",
-                        "Bord 10" to "Ledigt",
-                        "Bord 11" to "Ledigt"
-                    ).forEach { (bord, status) ->
-                        BordItem(bord = bord, status = status)
+                // Scrollable borde list
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 200.dp, max = 600.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    borde.forEach { bord ->
+                        BordItem(
+                            bord = "Bord ${bord.nummer}",
+                            status = bord.status.displayNavn,
+                            onClick = { onBordClick(bord.nummer) }
+                        )
                     }
                 }
             }
         }
+    }
+    
+    // Lager Dialog
+    if (visLagerDialog) {
+        LagerDialog(
+            varer = lagerVarer,
+            onDismiss = { visLagerDialog = false },
+            onAdd = { navn, status, iconType ->
+                val newId = (lagerVarer.maxOfOrNull { it.id.toIntOrNull() ?: 0 } ?: 0) + 1
+                lagerVarer = lagerVarer + LagerVare(newId.toString(), navn, status, iconType)
+            },
+            onEdit = { opdateretVare ->
+                lagerVarer = lagerVarer.map { if (it.id == opdateretVare.id) opdateretVare else it }
+            },
+            onDelete = { id ->
+                lagerVarer = lagerVarer.filter { it.id != id }
+            }
+        )
     }
 }
 
@@ -430,12 +639,13 @@ fun LagerItem(navn: String, status: String, iconType: String) {
 }
 
 @Composable
-fun BordItem(bord: String, status: String) {
+fun BordItem(bord: String, status: String, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = LumiPOSColors.SurfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -455,16 +665,39 @@ fun BordItem(bord: String, status: String) {
                     color = LumiPOSColors.TekstLys
                 )
             }
-            Text(
-                text = status,
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                color = when (status) {
-                    "Ledigt" -> LumiPOSColors.Grøn
-                    "Reserveret" -> LumiPOSColors.Orange
-                    else -> LumiPOSColors.Rød
-                },
-                fontWeight = FontWeight.SemiBold
-            )
+            
+            // Status med farvet brikke
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Farvet cirkel brikke
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(
+                            when (status) {
+                                "Ledig" -> LumiPOSColors.Grøn
+                                "Optaget" -> LumiPOSColors.Rød
+                                "Reserveret" -> LumiPOSColors.Orange
+                                else -> LumiPOSColors.TekstDæmpet
+                            }
+                        )
+                )
+                
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                    fontWeight = FontWeight.Medium,
+                    color = when (status) {
+                        "Ledig" -> LumiPOSColors.Grøn
+                        "Optaget" -> LumiPOSColors.Rød
+                        "Reserveret" -> LumiPOSColors.Orange
+                        else -> LumiPOSColors.TekstDæmpet
+                    }
+                )
+            }
         }
     }
 }
